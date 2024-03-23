@@ -1,4 +1,5 @@
 local M = {}
+
 local Path = require('plenary.path')
 local scan = require('plenary.scandir')
 local pickers = require('telescope.pickers')
@@ -51,12 +52,22 @@ function M.pick_profiles(contents)
 			end,
 		}),
 		sorter = conf.generic_sorter({}),
-		attach_mappings = function(prompt_bufnr, map)
+		attach_mappings = function(prompt_bufnr, _map)
 			actions.select_default:replace(function()
-				local selection = action_state.get_selected_entry()
-				print(vim.inspect(selection))
 				actions.close(prompt_bufnr)
+				local selection = action_state.get_selected_entry()
+				local profile = selection.value
+				print("Executing profile: " .. profile.name)
+				for _, cmd in ipairs(profile.commands) do
+					local output = vim.fn.system(cmd)
+					if vim.v.shell_error ~= 0 then
+						print("Error executing command: " .. cmd)
+					else
+						print("Command output: " .. output)
+					end
+				end
 			end)
+
 			return true
 		end,
 	}):find()
