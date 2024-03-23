@@ -19,7 +19,6 @@ function M.find_profiles()
 	if nvim_dir:exists() then
 		local lua_files = scan.scan_dir(nvim_dir:absolute(), {
 			hidden = false,
-			only_dirs = false,
 			depth = 1,
 			search_pattern = "%.lua$",
 		})
@@ -40,7 +39,8 @@ end
 
 function M.pick_profiles(contents)
 	pickers.new({}, {
-		prompt_title = "Profiles",
+		prompt_title = "Pick a profile to run",
+		results_title = "Profiles",
 		finder = finders.new_table({
 			results = contents,
 			entry_maker = function(profile)
@@ -54,7 +54,6 @@ function M.pick_profiles(contents)
 		sorter = conf.generic_sorter({}),
 		attach_mappings = function(prompt_bufnr, _map)
 			actions.select_default:replace(function()
-				actions.close(prompt_bufnr)
 				local selection = action_state.get_selected_entry()
 				local profile = selection.value
 				print("Executing profile: " .. profile.name)
@@ -62,14 +61,19 @@ function M.pick_profiles(contents)
 					local output = vim.fn.system(cmd)
 					if vim.v.shell_error ~= 0 then
 						print("Error executing command: " .. cmd)
-					else
+					elseif profile.print == nil or profile.print == true then
 						print("Command output: " .. output)
 					end
 				end
+				actions.close(prompt_bufnr)
 			end)
 
 			return true
 		end,
+		layout_config = {
+			width = 0.4,
+			height = 0.6,
+		},
 	}):find()
 end
 
