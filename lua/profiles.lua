@@ -44,7 +44,7 @@ end
 
 function M.pick_profiles(contents)
 	pickers.new({}, {
-		prompt_title = "Pick a profile to execute",
+		prompt_title = "Search for a profile to execute",
 		results_title = "Profiles",
 		finder = finders.new_table({
 			results = contents,
@@ -81,11 +81,13 @@ function M.create_terminals(profile)
 	local env_cmd = ""
 	local is_windows = vim.fn.has("win32") == 1
 
-	for key, value in pairs(profile.environment_vars) do
-		if is_windows then
-			env_cmd = env_cmd .. "$env:" .. key .. " = \"" .. value .. "\"; "
-		else
-			env_cmd = env_cmd .. "export " .. key .. "=\"" .. value .. "\"; "
+	if profile.environment_vars ~= nil then
+		for key, value in pairs(profile.environment_vars) do
+			if is_windows then
+				env_cmd = env_cmd .. "$env:" .. key .. " = \"" .. value .. "\"; "
+			else
+				env_cmd = env_cmd .. "export " .. key .. "=\"" .. value .. "\"; "
+			end
 		end
 	end
 
@@ -104,8 +106,10 @@ function M.create_terminals(profile)
 end
 
 function M.run_applications(profile)
-	for _, command in ipairs(profile.os_commands) do
-		M.exec_silent(command)
+	if profile.os_commands ~= nil then
+		for _, command in ipairs(profile.os_commands) do
+			M.exec_silent(command)
+		end
 	end
 end
 
