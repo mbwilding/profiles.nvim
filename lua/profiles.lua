@@ -34,7 +34,7 @@ function M.find_profiles()
 
 		return profiles
 	else
-		print(".nvim directory not found in the root.")
+		print("'/.nvim/' not found in the working directory")
 	end
 end
 
@@ -53,7 +53,7 @@ function M.pick_profiles(contents)
 			end,
 		}),
 		sorter = conf.generic_sorter({}),
-		attach_mappings = function(prompt_bufnr, _map)
+		attach_mappings = function(prompt_bufnr, _)
 			actions.select_default:replace(function()
 				actions.close(prompt_bufnr)
 
@@ -86,12 +86,32 @@ function M.create_terminals(profile)
 			env_cmd = env_cmd .. "export " .. key .. "=\"" .. value .. "\"; "
 		end
 	end
+
+	for i, command in ipairs(profile.terminal_commands) do
+		toggleterm.exec(
+			env_cmd .. command,
+			i,
+			0,
+			vim.fn.getcwd():gsub("\\", "/"),
+			"horizontal",
+			"Term" .. i,
+			true,
+			true
+		)
+	end
 end
 
 function M.run_applications(profile)
-	for _, command in ipairs(profile.applications) do
-		os.execute(command)
+	for _, command in ipairs(profile.os_commands) do
+		M.exec_silent(command)
 	end
+end
+
+function M.exec_silent(command)
+	local p = assert(io.popen(command))
+	local result = p:read("*all")
+	p:close()
+	return result
 end
 
 return M
