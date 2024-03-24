@@ -55,27 +55,14 @@ function M.pick_profiles(contents)
 		sorter = conf.generic_sorter({}),
 		attach_mappings = function(prompt_bufnr, _map)
 			actions.select_default:replace(function()
+				actions.close(prompt_bufnr)
+
 				local selection = action_state.get_selected_entry()
 				local profile = selection.value
 
-				-- print("Executing profile: " .. profile.profile_name)
-
-				-- for key, value in pairs(profile.environment_vars) do
-				-- 	print("K: " .. key .. " | " .. "V: " .. value)
-				-- end
-
-				-- for _, cmd in ipairs(profile.commands) do
-				-- 	local output = vim.fn.system(cmd)
-				-- 	if vim.v.shell_error ~= 0 then
-				-- 		print("Error executing command: " .. cmd)
-				-- 	elseif profile.print == nil or profile.print == true then
-				-- 		print("Command output: " .. output)
-				-- 	end
-				-- end
+				print("Executing profile: " .. profile.profile_name)
 
 				M.create_terminals(profile)
-
-				actions.close(prompt_bufnr)
 			end)
 
 			return true
@@ -88,13 +75,25 @@ function M.pick_profiles(contents)
 end
 
 function M.create_terminals(profile)
+	local env_cmd = ""
+
+	if vim.fn.has("win32") == 1 then
+		for key, value in pairs(profile.environment_vars) do
+			env_cmd = env_cmd .. "$env:" .. key .. " = \"" .. value .. "\"; "
+		end
+	else
+		for key, value in pairs(profile.environment_vars) do
+			env_cmd = env_cmd .. "export " .. key .. "=\"" .. value .. "\"; "
+		end
+	end
+
 	for i, command in ipairs(profile.commands) do
 		toggleterm.exec(
-			command,
+			env_cmd .. command,
 			i,
-			40,
+			0,
 			vim.fn.getcwd():gsub("\\", "/"),
-			"tab",
+			"horizontal",
 			"Term" .. i,
 			true,
 			true
