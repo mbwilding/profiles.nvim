@@ -63,6 +63,7 @@ function M.pick_profiles(contents)
 				print("Executing profile: " .. profile.profile_name)
 
 				M.create_terminals(profile)
+				M.run_applications(profile)
 			end)
 
 			return true
@@ -76,28 +77,20 @@ end
 
 function M.create_terminals(profile)
 	local env_cmd = ""
+	local is_windows = vim.fn.has("win32") == 1
 
-	if vim.fn.has("win32") == 1 then
-		for key, value in pairs(profile.environment_vars) do
+	for key, value in pairs(profile.environment_vars) do
+		if is_windows then
 			env_cmd = env_cmd .. "$env:" .. key .. " = \"" .. value .. "\"; "
-		end
-	else
-		for key, value in pairs(profile.environment_vars) do
+		else
 			env_cmd = env_cmd .. "export " .. key .. "=\"" .. value .. "\"; "
 		end
 	end
+end
 
-	for i, command in ipairs(profile.commands) do
-		toggleterm.exec(
-			env_cmd .. command,
-			i,
-			0,
-			vim.fn.getcwd():gsub("\\", "/"),
-			"horizontal",
-			"Term" .. i,
-			true,
-			true
-		)
+function M.run_applications(profile)
+	for _, command in ipairs(profile.applications) do
+		os.execute(command)
 	end
 end
 
