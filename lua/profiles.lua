@@ -26,9 +26,13 @@ function M.find_profiles()
 
 		local profiles = {}
 		for _, file_path in ipairs(lua_files) do
+			local file_name = vim.fn.fnamemodify(file_path, ':t:r')
 			local content = dofile(file_path)
-			if content.profile_name ~= nil then
-				table.insert(profiles, content)
+			if content ~= nil then
+				table.insert(profiles, {
+					file_name = file_name,
+					content = content
+				})
 			end
 		end
 
@@ -44,11 +48,11 @@ function M.pick_profiles(contents)
 		results_title = "Profiles",
 		finder = finders.new_table({
 			results = contents,
-			entry_maker = function(profile)
+			entry_maker = function(entry)
 				return {
-					value = profile,
-					display = profile.profile_name,
-					ordinal = profile.profile_name,
+					value = entry.content,
+					display = entry.file_name,
+					ordinal = entry.file_name,
 				}
 			end,
 		}),
@@ -59,8 +63,6 @@ function M.pick_profiles(contents)
 
 				local selection = action_state.get_selected_entry()
 				local profile = selection.value
-
-				print("Executing profile: " .. profile.profile_name)
 
 				M.create_terminals(profile)
 				M.run_applications(profile)
