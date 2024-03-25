@@ -1,5 +1,9 @@
 # profiles.nvim
 
+This plugin allows you to easily access commands that you want to run for the project at hand.
+
+Be it builds, tests, running the project, or whatever.
+
 ## Lazy setup
 
 ```lua
@@ -21,7 +25,7 @@ return {
 
 ## Example
 
-Here is an example profile in the `.nvim` in the current working directory: `/.nvim/Example.lua`
+Here is an example profile in the `.nvim` directory sitting in the current working directory: `.nvim/Example.lua`
 
 For example, this will show as `Example` in the `Profiles` list in Telescope.
 
