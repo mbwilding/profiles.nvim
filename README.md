@@ -32,9 +32,15 @@ For example, this will show as `Example` in the `Profiles` list in Telescope.
 ```lua
 return {
     -- Terminal commands will open in ToggleTerm
-    -- Each command will increment the terminal number in which it runs in
+    -- Specify which terminal will run what set of commands
     terminal_commands = {
-        "dotnet build",
+        [1] = {
+            "dotnet restore",
+            "dotnet build",
+        },
+        [2] = {
+            "echo 'Hello, World!'"
+        }
     },
     -- OS commands will open a program
     -- For example, a web page if you are spinning up an API

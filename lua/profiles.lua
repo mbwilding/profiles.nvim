@@ -91,14 +91,19 @@ function M.create_terminals(profile)
 		end
 	end
 
-	for i, command in ipairs(profile.terminal_commands) do
+	for terminal, commands in pairs(profile.terminal_commands) do
+		local concatenated_commands = ""
+		for _, command in ipairs(commands) do
+			concatenated_commands = concatenated_commands .. command .. ";"
+		end
+
 		toggleterm.exec(
-			env_cmd .. command,
-			i,
+			env_cmd .. concatenated_commands,
+			terminal,
 			0,
 			vim.fn.getcwd():gsub("\\", "/"),
 			"horizontal",
-			"Term" .. i,
+			"Term" .. terminal,
 			true,
 			true
 		)
