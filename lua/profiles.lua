@@ -14,6 +14,26 @@ function M.select_profile()
 	M.pick_profiles(profiles)
 end
 
+function M.select_default_profile()
+	local project_types = M.check_project_types()
+	local profiles = {}
+
+	for project_type, _ in pairs(project_types) do
+		local language = require("languages/" .. project_type)
+
+		if language ~= nil then
+			for name, content in pairs(language) do
+				table.insert(profiles, {
+					name = name .. " (" .. project_type:upper() .. ")",
+					content = content
+				})
+			end
+		end
+	end
+
+	M.pick_profiles(profiles)
+end
+
 function M.find_profiles()
 	local cwd = vim.fn.getcwd()
 	local nvim_dir = Path:new(cwd .. "/.nvim")
@@ -26,11 +46,11 @@ function M.find_profiles()
 
 		local profiles = {}
 		for _, file_path in ipairs(lua_files) do
-			local file_name = vim.fn.fnamemodify(file_path, ':t:r')
+			local name = vim.fn.fnamemodify(file_path, ':t:r')
 			local content = dofile(file_path)
 			if content ~= nil then
 				table.insert(profiles, {
-					file_name = file_name,
+					name = name,
 					content = content
 				})
 			end
@@ -51,8 +71,8 @@ function M.pick_profiles(contents)
 			entry_maker = function(entry)
 				return {
 					value = entry.content,
-					display = entry.file_name,
-					ordinal = entry.file_name,
+					display = entry.name,
+					ordinal = entry.name,
 				}
 			end,
 		}),
@@ -123,6 +143,47 @@ function M.exec_silent(command)
 	local result = p:read("*all")
 	p:close()
 	return result
+end
+
+function M.check_project_types()
+	local uv = vim.loop
+
+	local project_types = {}
+
+	local cwd = uv.cwd() or ""
+
+	local files_to_check = {
+		["Cargo.toml"] = "rust",
+	}
+
+	local patterns_to_check = {
+		[".*%.sln$"] = "csharp",
+		[".*%.csproj$"] = "csharp",
+	}
+
+	for file, project_type in pairs(files_to_check) do
+		local full_path = cwd .. "/" .. file
+
+		if uv.fs_stat(full_path) then
+			project_types[project_type] = true
+		end
+	end
+
+	for pattern, project_type in pairs(patterns_to_check) do
+		local scan_result = uv.fs_scandir(cwd)
+		if not scan_result then goto continue end
+
+		for entry in function() return uv.fs_scandir_next(scan_result) end do
+			if entry:match(pattern) then
+				project_types[project_type] = true
+				break
+			end
+		end
+
+		::continue::
+	end
+
+	return project_types
 end
 
 return M
