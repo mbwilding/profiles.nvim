@@ -26,5 +26,12 @@ return {
 				"cargo test",
 			}
 		}
+	},
+	Clean = {
+		terminal_commands = {
+			[1] = {
+				"cargo clean",
+			}
+		}
 	}
 }
