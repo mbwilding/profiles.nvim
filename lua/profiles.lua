@@ -8,6 +8,7 @@ local conf = require("telescope.config").values
 local action_state = require("telescope.actions.state")
 local actions = require("telescope.actions")
 local toggleterm = require("toggleterm")
+local terms = require("toggleterm.terminal")
 
 function M.select_profile()
 	local cwd = vim.fn.getcwd()
@@ -126,13 +127,20 @@ function M.create_terminals(profile)
 			concatenated_commands = concatenated_commands .. command .. ";"
 		end
 
+		local dir = vim.fn.getcwd():gsub("\\", "/")
+		local direction = "horizontal"
+		local name = "Term" .. terminal
+		local term = terms.get_or_create_term(terminal, dir, direction, name)
+
+		term:shutdown()
+
 		toggleterm.exec(
 			env_cmd .. concatenated_commands,
 			terminal,
 			0,
-			vim.fn.getcwd():gsub("\\", "/"),
-			"horizontal",
-			"Term" .. terminal,
+			dir,
+			direction,
+			name,
 			true,
 			true
 		)
@@ -185,9 +193,9 @@ function M.check_project_types()
 		end
 
 		for entry in
-			function()
-				return uv.fs_scandir_next(scan_result)
-			end
+		function()
+			return uv.fs_scandir_next(scan_result)
+		end
 		do
 			if entry:match(pattern) then
 				project_types[project_type] = true
